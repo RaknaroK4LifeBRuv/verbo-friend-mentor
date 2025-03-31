@@ -2,8 +2,8 @@
 import { Navigate } from "react-router-dom";
 
 const Index = () => {
-  // This component simply redirects to the dashboard
-  return <Navigate to="/" replace />;
+  // This component redirects to the performance page to test the charts
+  return <Navigate to="/performance" replace />;
 };
 
 export default Index;
