@@ -140,19 +140,31 @@ export const LineChart = ({
         <Tooltip content={<ChartTooltipContent />} />
         {showLegend && <Legend content={<ChartLegendContent />} />}
         
-        {data.datasets.map((dataset, index) => (
-          <Line
-            key={index}
-            type="monotone"
-            dataKey={dataset.label || `Dataset ${index + 1}`}
-            stroke={dataset.borderColor || `hsl(${index * 50}, 70%, 50%)`}
-            fill={dataset.fill ? dataset.backgroundColor || `rgba(${index * 50}, 70%, 50%, 0.1)` : undefined}
-            dot={{ stroke: dataset.pointBackgroundColor || dataset.borderColor || `hsl(${index * 50}, 70%, 50%)` }}
-            yAxisId={dataset.yAxisID || undefined}
-            activeDot={{ r: 8 }}
-            {...(dataset.tension ? { curve: "natural" } : {})}
-          />
-        ))}
+        {data.datasets.map((dataset, index) => {
+          // Fix the type issue by ensuring borderColor is a string
+          const borderColor = typeof dataset.borderColor === 'string' 
+            ? dataset.borderColor 
+            : `hsl(${index * 50}, 70%, 50%)`;
+          
+          // Fix the issue with pointBackgroundColor as well
+          const pointBackgroundColor = typeof dataset.pointBackgroundColor === 'string'
+            ? dataset.pointBackgroundColor
+            : borderColor;
+            
+          return (
+            <Line
+              key={index}
+              type="monotone"
+              dataKey={dataset.label || `Dataset ${index + 1}`}
+              stroke={borderColor}
+              fill={dataset.fill ? dataset.backgroundColor && typeof dataset.backgroundColor === 'string' ? dataset.backgroundColor : `rgba(${index * 50}, 70%, 50%, 0.1)` : undefined}
+              dot={{ stroke: pointBackgroundColor }}
+              yAxisId={dataset.yAxisID || undefined}
+              activeDot={{ r: 8 }}
+              {...(dataset.tension ? { curve: "natural" } : {})}
+            />
+          );
+        })}
       </RechartsLineChart>
     </ChartContainer>
   );
@@ -236,16 +248,28 @@ export const Radar = ({
         <Tooltip content={<ChartTooltipContent />} />
         {showLegend && <Legend content={<ChartLegendContent />} />}
         
-        {data.datasets.map((dataset, index) => (
-          <RechartsRadar
-            key={index}
-            name={dataset.label || `Dataset ${index + 1}`}
-            dataKey={dataset.label || `Dataset ${index + 1}`}
-            stroke={dataset.borderColor || `hsl(${index * 50}, 70%, 50%)`}
-            fill={dataset.backgroundColor || `rgba(${index * 50}, 70%, 50%, 0.2)`}
-            fillOpacity={0.6}
-          />
-        ))}
+        {data.datasets.map((dataset, index) => {
+          // Fix the type issue by ensuring borderColor is a string
+          const borderColor = typeof dataset.borderColor === 'string' 
+            ? dataset.borderColor 
+            : `hsl(${index * 50}, 70%, 50%)`;
+          
+          // Fix the issue with backgroundColor as well
+          const backgroundColor = typeof dataset.backgroundColor === 'string'
+            ? dataset.backgroundColor
+            : `rgba(${index * 50}, 70%, 50%, 0.2)`;
+            
+          return (
+            <RechartsRadar
+              key={index}
+              name={dataset.label || `Dataset ${index + 1}`}
+              dataKey={dataset.label || `Dataset ${index + 1}`}
+              stroke={borderColor}
+              fill={backgroundColor}
+              fillOpacity={0.6}
+            />
+          );
+        })}
       </RechartsRadarChart>
     </ChartContainer>
   );
