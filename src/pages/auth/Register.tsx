@@ -1,29 +1,50 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSupabaseConfigured, setIsSupabaseConfigured] = useState(true);
   const { register } = useAuth();
+
+  useEffect(() => {
+    // Check if Supabase is configured
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const isConfigured = supabaseUrl && supabaseKey && 
+      !supabaseUrl.includes('placeholder-project') && 
+      !supabaseKey.includes('placeholder');
+    
+    setIsSupabaseConfigured(isConfigured);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) return;
+    
+    if (!isSupabaseConfigured) {
+      setError("Supabase is not configured. Please set up your Supabase project in settings.");
+      return;
+    }
 
     setIsSubmitting(true);
+    setError(null);
     try {
       await register(email, password, name);
       // Redirect is handled by the AuthLayout component
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
+      setError(error.message || "Failed to create account. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -35,6 +56,22 @@ const Register = () => {
         <h2 className="text-2xl font-bold">Create an account</h2>
         <p className="text-sm text-gray-500 mt-1">Start your language learning journey</p>
       </div>
+
+      {!isSupabaseConfigured && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Supabase is not configured. Registration will not work until you connect your Supabase project in settings.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
@@ -72,7 +109,7 @@ const Register = () => {
           />
         </div>
 
-        <Button type="submit" className="w-full bg-verbo-600 hover:bg-verbo-700" disabled={isSubmitting}>
+        <Button type="submit" className="w-full bg-verbo-600 hover:bg-verbo-700" disabled={isSubmitting || !isSupabaseConfigured}>
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -2,10 +2,24 @@
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { User } from '@/types/backend';
 
+// Helper to check if Supabase is properly configured
+const isSupabaseConfigured = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  return supabaseUrl && supabaseKey && 
+    !supabaseUrl.includes('placeholder-project') && 
+    !supabaseKey.includes('placeholder');
+};
+
 export const authService = {
   // Register a new user
   async register(email: string, password: string, name: string, nativeLanguage: string = 'English', learningLanguage: string = 'Spanish', proficiencyLevel: string = 'Beginner') {
     try {
+      // Check if Supabase is configured properly
+      if (!isSupabaseConfigured()) {
+        throw new Error("Supabase is not configured. Please set up your Supabase project in settings.");
+      }
+      
       // 1. Register with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
@@ -48,6 +62,11 @@ export const authService = {
   // Login an existing user
   async login(email: string, password: string) {
     try {
+      // Check if Supabase is configured properly
+      if (!isSupabaseConfigured()) {
+        throw new Error("Supabase is not configured. Please set up your Supabase project in settings.");
+      }
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
