@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useToast } from "@/components/ui/use-toast";
 import { authService } from "@/services/authService";
 import { User } from "@/types/backend";
+import { supabase } from "@/lib/supabase";
 
 interface AuthContextType {
   user: User | null;
@@ -28,26 +29,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Check for existing session on mount
+  // Set up auth state listener
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setLoading(true);
+        
+        if (session) {
+          try {
+            // Use setTimeout to prevent potential deadlocks
+            setTimeout(async () => {
+              const profile = await authService.getUserProfile();
+              setUser(profile);
+              setLoading(false);
+            }, 0);
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+            setUser(null);
+            setLoading(false);
+          }
+        } else {
+          setUser(null);
+          setLoading(false);
+        }
+      }
+    );
+
+    // Initial session check
     const checkAuth = async () => {
       try {
-        setLoading(true);
-        const isAuthenticated = await authService.isAuthenticated();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (isAuthenticated) {
+        if (session) {
           const profile = await authService.getUserProfile();
           setUser(profile);
         }
       } catch (error) {
         console.error("Auth check error:", error);
-        // If there's an error, we'll assume the user is not authenticated
       } finally {
         setLoading(false);
       }
     };
 
     checkAuth();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string) => {

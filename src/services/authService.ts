@@ -2,28 +2,19 @@
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { User } from '@/types/backend';
 
-// Helper to check if Supabase is properly configured
-const isSupabaseConfigured = () => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  return supabaseUrl && supabaseKey && 
-    !supabaseUrl.includes('placeholder-project') && 
-    !supabaseKey.includes('placeholder');
-};
-
 export const authService = {
   // Register a new user
   async register(email: string, password: string, name: string, nativeLanguage: string = 'English', learningLanguage: string = 'Spanish', proficiencyLevel: string = 'Beginner') {
     try {
-      // Check if Supabase is configured properly
-      if (!isSupabaseConfigured()) {
-        throw new Error("Supabase is not configured. Please set up your Supabase project in settings.");
-      }
-      
       // 1. Register with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            name,
+          }
+        }
       });
       
       if (authError) {
@@ -34,24 +25,9 @@ export const authService = {
         throw new Error('User registration failed');
       }
       
-      // 2. Create a user profile in the users table
-      const { error: profileError } = await supabase.from('users').insert({
-        id: authData.user.id,
-        email,
-        name,
-        native_language: nativeLanguage,
-        learning_language: learningLanguage,
-        proficiency_level: proficiencyLevel,
-        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-      });
+      // The user profile will be created automatically via database trigger
       
-      if (profileError) {
-        // Attempt to clean up the auth user if profile creation fails
-        await supabase.auth.admin.deleteUser(authData.user.id);
-        throw new Error(handleSupabaseError(profileError));
-      }
-      
-      // 3. Fetch the complete user profile
+      // 2. Fetch the complete user profile
       return await this.getUserProfile();
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -62,12 +38,7 @@ export const authService = {
   // Login an existing user
   async login(email: string, password: string) {
     try {
-      // Check if Supabase is configured properly
-      if (!isSupabaseConfigured()) {
-        throw new Error("Supabase is not configured. Please set up your Supabase project in settings.");
-      }
-      
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
