@@ -3,14 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, BookOpen, Book, Clock } from "lucide-react";
 import React from "react";
+import { Json } from "@/types/database.types";
 
 interface PracticeProps {
   toast: any;
   logUserActivity: (
     userId: string,
-    type: string,
-    points: number,
-    meta: object
+    activityType: string,
+    xp: number,
+    metadata: Json
   ) => Promise<void>;
   userId: string;
 }
