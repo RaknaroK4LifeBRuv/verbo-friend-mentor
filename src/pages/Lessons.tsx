@@ -4,11 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { lessonService } from "@/services/lessonService";
 import { logUserActivity } from "@/services/gamificationService";
 import { Lesson, UserLesson } from "@/types/backend";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Book } from "lucide-react"; 
 import CoursesList from "./lessons/CoursesList";
 import QuickPracticeList from "./lessons/QuickPracticeList";
 import GrammarLessons from "./lessons/GrammarLessons";

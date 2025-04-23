@@ -1,3 +1,4 @@
+
 import { supabase, handleSupabaseError } from '@/lib/supabase';
 import { Lesson, UserLesson, LessonPerformance } from '@/types/backend';
 import { v4 as uuidv4 } from 'uuid';
@@ -59,7 +60,7 @@ export const lessonService = {
           language: 'Spanish',
           level: 'Beginner',
           duration: 15,
-          type: 'conversation',
+          type: 'conversation' as const,
           content: {
             sections: [
               {
@@ -94,7 +95,7 @@ export const lessonService = {
           language: 'Spanish',
           level: 'Beginner',
           duration: 10,
-          type: 'vocabulary',
+          type: 'vocabulary' as const,
           content: {
             sections: [
               {
@@ -136,7 +137,7 @@ export const lessonService = {
           language: 'Spanish',
           level: 'Beginner',
           duration: 20,
-          type: 'grammar',
+          type: 'grammar' as const,
           content: {
             sections: [
               {
