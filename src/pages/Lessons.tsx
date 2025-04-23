@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -12,6 +11,10 @@ import { lessonService } from "@/services/lessonService";
 import { logUserActivity } from "@/services/gamificationService";
 import { Lesson, UserLesson } from "@/types/backend";
 import { Skeleton } from "@/components/ui/skeleton";
+import CoursesList from "./lessons/CoursesList";
+import QuickPracticeList from "./lessons/QuickPracticeList";
+import GrammarLessons from "./lessons/GrammarLessons";
+import VocabularyLists from "./lessons/VocabularyLists";
 
 const Lessons = () => {
   const { toast } = useToast();
@@ -150,235 +153,24 @@ const Lessons = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6 space-y-6">
-          {loading ? (
-            <CoursesSkeletonLoader />
-          ) : (
-            Object.keys(coursesByLevel).length > 0 ? (
-              Object.keys(coursesByLevel).map((courseKey) => {
-                const [language, level] = courseKey.split('-');
-                const progress = getCourseProgress(courseKey);
-                const courseLessons = coursesByLevel[courseKey];
-                
-                return (
-                  <Card key={courseKey}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <CardTitle>{language} {level}</CardTitle>
-                          <CardDescription>{level} level course - {progress}% complete</CardDescription>
-                        </div>
-                        {courseKey === Object.keys(coursesByLevel)[0] && (
-                          <Badge className="bg-verbo-500">Current</Badge>
-                        )}
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {courseLessons.map((lesson, i) => {
-                          const lessonProgress = getLessonProgress(lesson.id);
-                          const completed = isLessonCompleted(lesson.id);
-                          const locked = isLessonLocked(lesson, i, courseKey);
-                          
-                          return (
-                            <Card key={lesson.id} className="overflow-hidden">
-                              <CardContent className="p-0">
-                                <div className={`p-4 ${locked ? "opacity-60" : ""}`}>
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-medium">{lesson.title}</h3>
-                                    {locked ? (
-                                      <LockIcon className="h-4 w-4 text-gray-400" />
-                                    ) : completed ? (
-                                      <CheckCircle2 className="h-5 w-5 text-green-500" />
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">{lessonProgress}%</span>
-                                    )}
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mb-3">{lesson.description}</p>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center text-xs text-muted-foreground">
-                                      <Clock className="h-3 w-3 mr-1" /> 
-                                      <span>{lesson.duration} mins</span>
-                                    </div>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="sm" 
-                                      className="text-verbo-600 hover:text-verbo-700 hover:bg-verbo-50"
-                                      disabled={locked}
-                                      onClick={() => handleStartLesson(lesson)}
-                                    >
-                                      <PlayCircle className="h-4 w-4 mr-1" />
-                                      <span>{getButtonText(lesson.id)}</span>
-                                    </Button>
-                                  </div>
-                                </div>
-                                <Progress 
-                                  value={lessonProgress} 
-                                  className="h-1 rounded-none"
-                                  indicatorClassName={completed ? "bg-green-500" : ""}
-                                />
-                              </CardContent>
-                            </Card>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
-            ) : (
-              <EmptyLessonsState />
-            )
-          )}
-
-          <div className="grid gap-6 sm:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Advanced Conversations</CardTitle>
-                <CardDescription>Advanced level course - Locked</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center justify-center py-6 text-center">
-                  <div className="bg-gray-100 p-3 rounded-full mb-4">
-                    <LockIcon className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <h3 className="font-medium mb-2">Complete Intermediate Course First</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    You need to complete the Intermediate course before unlocking this content.
-                  </p>
-                  <Progress value={0} className="h-2 w-full max-w-xs" />
-                  <p className="text-xs text-muted-foreground mt-2">0% Progress on prerequisites</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Travel Conversations</CardTitle>
-                <CardDescription>Themed course - Coming soon</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-verbo-100 p-2 rounded-full">
-                      <MessageCircle className="h-5 w-5 text-verbo-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Travel-focused dialogues</div>
-                      <div className="text-sm text-muted-foreground">
-                        Learn how to navigate airports, hotels, and tourist destinations
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <div className="bg-green-100 p-2 rounded-full">
-                      <Book className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="font-medium">Practical vocabulary</div>
-                      <div className="text-sm text-muted-foreground">
-                        Essential words and phrases for travelers
-                      </div>
-                    </div>
-                  </div>
-                  <Button className="w-full bg-verbo-600 hover:bg-verbo-700" disabled>
-                    Coming Soon
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <CoursesList
+            loading={loading}
+            coursesByLevel={coursesByLevel}
+            getCourseProgress={getCourseProgress}
+            getLessonProgress={getLessonProgress}
+            isLessonCompleted={isLessonCompleted}
+            isLessonLocked={isLessonLocked}
+            handleStartLesson={handleStartLesson}
+            getButtonText={getButtonText}
+          />
         </TabsContent>
 
         <TabsContent value="quick" className="mt-6">
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { 
-                title: "Daily Conversation", 
-                description: "Short dialogue practice based on your level",
-                icon: MessageCircle,
-                color: "bg-verbo-100 text-verbo-600",
-                time: "10 mins",
-                type: "conversation"
-              },
-              { 
-                title: "Listening Exercise", 
-                description: "Improve your listening comprehension",
-                icon: BookOpen,
-                color: "bg-purple-100 text-purple-600",
-                time: "5 mins",
-                type: "listening"
-              },
-              { 
-                title: "Vocabulary Review", 
-                description: "Practice words you've recently learned",
-                icon: Book,
-                color: "bg-yellow-100 text-yellow-600",
-                time: "8 mins",
-                type: "vocabulary"
-              },
-              { 
-                title: "Speaking Challenge", 
-                description: "Test your speaking skills with the AI tutor",
-                icon: MessageCircle,
-                color: "bg-green-100 text-green-600",
-                time: "12 mins",
-                type: "speaking"
-              },
-              { 
-                title: "Grammar Practice", 
-                description: "Focused exercises on grammar rules",
-                icon: Book,
-                color: "bg-orange-100 text-orange-600",
-                time: "15 mins",
-                type: "grammar"
-              },
-              { 
-                title: "Cultural Insights", 
-                description: "Learn about language-speaking cultures",
-                icon: BookOpen,
-                color: "bg-blue-100 text-blue-600",
-                time: "7 mins",
-                type: "culture"
-              },
-            ].map((practice, i) => (
-              <Card key={i}>
-                <CardContent className="pt-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className={`${practice.color} p-3 rounded-full mb-4`}>
-                      <practice.icon className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-medium mb-1">{practice.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {practice.description}
-                    </p>
-                    <div className="flex items-center justify-center text-sm text-muted-foreground mb-4">
-                      <Clock className="h-4 w-4 mr-1" /> 
-                      <span>{practice.time}</span>
-                    </div>
-                    <Button 
-                      className="w-full bg-verbo-600 hover:bg-verbo-700"
-                      onClick={async () => {
-                        toast({
-                          title: "Starting practice session",
-                          description: `${practice.title} session is beginning`
-                        });
-                        // Log gamification activity
-                        await logUserActivity(
-                          "user123", // This should be the actual user ID
-                          `practice_${practice.type}`,
-                          10,
-                          { practiceType: practice.type }
-                        );
-                      }}
-                    >
-                      Start Practice
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <QuickPracticeList
+            toast={toast}
+            logUserActivity={logUserActivity}
+            userId={userLessons[0]?.userId || "user123"}
+          />
         </TabsContent>
 
         <TabsContent value="grammar" className="mt-6">
