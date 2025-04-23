@@ -1,5 +1,5 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 export async function speakWithAI(text: string, voice?: string): Promise<string | null> {
   if (!text) return null;

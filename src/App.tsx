@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "./components/layout/SidebarProvider";
 import Dashboard from "./pages/Dashboard";
 import Lessons from "./pages/Lessons";
+import LessonContent from "./pages/LessonContent";
 import Conversations from "./pages/Conversations";
 import RolePlay from "./pages/RolePlay";
 import Pronunciation from "./pages/Pronunciation";
@@ -40,6 +41,7 @@ const App = () => (
               <Route element={<Layout />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/lessons" element={<Lessons />} />
+                <Route path="/lesson/:lessonId" element={<LessonContent />} />
                 <Route path="/conversations" element={<Conversations />} />
                 <Route path="/roleplay" element={<RolePlay />} />
                 <Route path="/pronunciation" element={<Pronunciation />} />
