@@ -1,12 +1,22 @@
-
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Award, BookOpen, Calendar, Clock, Flame, MessageCircle, Mic, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getUserProgress, getUserAchievements } from "@/services/gamificationService";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const [progress, setProgress] = useState<any>(null);
+  const [achievements, setAchievements] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user?.id) {
+      getUserProgress(user.id).then(setProgress);
+      getUserAchievements(user.id).then(setAchievements);
+    }
+  }, [user]);
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -25,18 +35,8 @@ const Dashboard = () => {
             <Flame className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">7 days</div>
+            <div className="text-2xl font-bold">{progress?.streak_days ?? 0} days</div>
             <p className="text-xs text-muted-foreground mt-1">Keep it going!</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Minutes Today</CardTitle>
-            <Clock className="h-4 w-4 text-verbo-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">15 min</div>
-            <p className="text-xs text-muted-foreground mt-1">Goal: 30 min</p>
           </CardContent>
         </Card>
         <Card>
@@ -45,8 +45,8 @@ const Dashboard = () => {
             <Zap className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">250 XP</div>
-            <p className="text-xs text-muted-foreground mt-1">Level 3</p>
+            <div className="text-2xl font-bold">{progress?.xp_points ?? 0} XP</div>
+            <p className="text-xs text-muted-foreground mt-1">Level {progress?.level ?? 1}</p>
           </CardContent>
         </Card>
         <Card>
@@ -57,6 +57,16 @@ const Dashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">32</div>
             <p className="text-xs text-muted-foreground mt-1">This week</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Minutes Today</CardTitle>
+            <Clock className="h-4 w-4 text-verbo-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">15 min</div>
+            <p className="text-xs text-muted-foreground mt-1">Goal: 30 min</p>
           </CardContent>
         </Card>
       </div>
@@ -101,7 +111,6 @@ const Dashboard = () => {
             </div>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader>
             <CardTitle>Recent Achievements</CardTitle>
@@ -109,36 +118,20 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <Award className="h-6 w-6 text-yellow-500 mt-0.5" />
-                <div>
-                  <div className="font-medium">Perfect Pronunciation</div>
-                  <div className="text-sm text-muted-foreground">
-                    Scored 100% on the basic greeting pronunciation
+              {achievements.slice(0, 3).map((a, i) => (
+                <div className="flex items-start space-x-3" key={a.id}>
+                  <Award className="h-6 w-6 text-yellow-500 mt-0.5" />
+                  <div>
+                    <div className="font-medium">{a.achievement?.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {a.achievement?.description}
+                    </div>
+                    <Badge variant="outline" className="mt-1 text-xs">
+                      {new Date(a.unlocked_at).toLocaleDateString()}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="mt-1 text-xs">5 days ago</Badge>
                 </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <Flame className="h-6 w-6 text-orange-500 mt-0.5" />
-                <div>
-                  <div className="font-medium">7-Day Streak</div>
-                  <div className="text-sm text-muted-foreground">
-                    Practiced for 7 consecutive days
-                  </div>
-                  <Badge variant="outline" className="mt-1 text-xs">Today</Badge>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <MessageCircle className="h-6 w-6 text-verbo-500 mt-0.5" />
-                <div>
-                  <div className="font-medium">Conversation Starter</div>
-                  <div className="text-sm text-muted-foreground">
-                    Completed 5 conversation practice sessions
-                  </div>
-                  <Badge variant="outline" className="mt-1 text-xs">2 days ago</Badge>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>

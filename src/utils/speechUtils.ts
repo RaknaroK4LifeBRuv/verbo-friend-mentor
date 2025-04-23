@@ -1,4 +1,3 @@
-
 // Speech-to-text and text-to-speech utilities
 
 export const speechUtils = {
@@ -181,3 +180,20 @@ export const mockPronunciationAnalysis = async (audioBlob: Blob, text: string) =
     }
   };
 };
+
+import { useAuth } from "@/contexts/AuthContext";
+import { logUserActivity, unlockAchievement } from "@/services/gamificationService";
+
+// Extend speechUtils with gamification in your app
+export async function handleSpeechGamification(userId: string, type: "conversation" | "pronunciation", score?: number) {
+  // Log activity
+  await logUserActivity(userId, type, type === "pronunciation" && score ? score : 10);
+
+  // Unlock achievements
+  if (type === "conversation") {
+    await unlockAchievement(userId, "conversation");
+  }
+  if (type === "pronunciation" && score && score >= 90) {
+    await unlockAchievement(userId, "pronunciation");
+  }
+}
