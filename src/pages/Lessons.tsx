@@ -3,9 +3,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MessageCircle, Book, BookOpen, Clock, CheckCircle2, LockIcon, PlayCircle } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import { lessonService } from "@/services/lessonService";
@@ -24,11 +21,14 @@ const Lessons = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [userLessons, setUserLessons] = useState<UserLesson[]>([]);
   const [activeTab, setActiveTab] = useState("courses");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchLessons = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         // Fetch all available lessons
         const allLessons = await lessonService.getLessons();
         setLessons(allLessons);
@@ -40,6 +40,7 @@ const Lessons = () => {
         setLoading(false);
       } catch (error) {
         console.error("Error loading lessons:", error);
+        setError("Failed to load lessons. Please try again.");
         toast({
           title: "Error loading lessons",
           description: "Please try again later",
@@ -136,6 +137,31 @@ const Lessons = () => {
     return "Continue";
   };
 
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold">Lessons & Practice</h1>
+          <p className="text-muted-foreground">
+            Interactive AI-driven lessons to improve your language skills
+          </p>
+        </div>
+        <Card className="border-red-200">
+          <CardContent className="p-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="text-red-500 rounded-full p-3 bg-red-50">
+                <Book className="h-10 w-10" />
+              </div>
+              <h3 className="text-xl font-medium">Error Loading Lessons</h3>
+              <p>{error}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div>
@@ -185,56 +211,5 @@ const Lessons = () => {
     </div>
   );
 };
-
-// Loading skeleton component
-const CoursesSkeletonLoader = () => (
-  <Card>
-    <CardHeader>
-      <Skeleton className="h-8 w-1/3 mb-2" />
-      <Skeleton className="h-4 w-1/2 mb-4" />
-      <Skeleton className="h-2 w-full" />
-    </CardHeader>
-    <CardContent>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i}>
-            <CardContent className="p-4">
-              <Skeleton className="h-6 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-4" />
-              <div className="flex justify-between items-center">
-                <Skeleton className="h-4 w-1/4" />
-                <Skeleton className="h-8 w-1/3" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </CardContent>
-  </Card>
-);
-
-// Empty state component
-const EmptyLessonsState = () => (
-  <Card className="border-dashed">
-    <CardContent className="py-12">
-      <div className="flex flex-col items-center justify-center text-center">
-        <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-medium mb-2">No lessons available yet</h3>
-        <p className="text-muted-foreground mb-4 max-w-md">
-          We're currently preparing personalized lessons based on your level.
-          Please check back soon!
-        </p>
-        <Button
-          onClick={() => {
-            window.location.reload();
-          }}
-        >
-          Refresh
-        </Button>
-      </div>
-    </CardContent>
-  </Card>
-);
 
 export default Lessons;

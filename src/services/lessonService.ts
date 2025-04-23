@@ -22,6 +22,12 @@ export const lessonService = {
         throw new Error(handleSupabaseError(error));
       }
       
+      // Check if we got any lessons
+      if (!data || data.length === 0) {
+        // Create initial lessons if none exist
+        return await this.createInitialLessons();
+      }
+      
       // Convert from snake_case to camelCase for frontend use
       const lessons: Lesson[] = data.map(lesson => ({
         id: lesson.id,
@@ -38,6 +44,152 @@ export const lessonService = {
       return lessons;
     } catch (error: any) {
       console.error('Get lessons error:', error);
+      throw error;
+    }
+  },
+  
+  // Create initial lessons if none exist
+  async createInitialLessons(): Promise<Lesson[]> {
+    try {
+      const initialLessons = [
+        {
+          id: uuidv4(),
+          title: 'Greetings and Introductions',
+          description: 'Learn how to greet people and introduce yourself',
+          language: 'Spanish',
+          level: 'Beginner',
+          duration: 15,
+          type: 'conversation',
+          content: {
+            sections: [
+              {
+                title: 'Basic Greetings',
+                content: `<h3>Common Spanish Greetings</h3>
+                <ul>
+                  <li><strong>Hola</strong> - Hello</li>
+                  <li><strong>Buenos días</strong> - Good morning</li>
+                  <li><strong>Buenas tardes</strong> - Good afternoon</li>
+                  <li><strong>Buenas noches</strong> - Good evening</li>
+                </ul>
+                <p>Practice saying these phrases out loud to improve your pronunciation.</p>`
+              },
+              {
+                title: 'Introducing Yourself',
+                content: `<h3>Introducing Yourself in Spanish</h3>
+                <ul>
+                  <li><strong>Me llamo...</strong> - My name is...</li>
+                  <li><strong>Soy de...</strong> - I am from...</li>
+                  <li><strong>Mucho gusto</strong> - Nice to meet you</li>
+                </ul>
+                <p>Try creating a full introduction using these phrases.</p>`
+              }
+            ]
+          },
+          created_at: new Date().toISOString()
+        },
+        {
+          id: uuidv4(),
+          title: 'Numbers and Counting',
+          description: 'Learn to count and use numbers in conversation',
+          language: 'Spanish',
+          level: 'Beginner',
+          duration: 10,
+          type: 'vocabulary',
+          content: {
+            sections: [
+              {
+                title: 'Numbers 1-10',
+                content: `<h3>Numbers in Spanish (1-10)</h3>
+                <ul>
+                  <li><strong>Uno</strong> - One</li>
+                  <li><strong>Dos</strong> - Two</li>
+                  <li><strong>Tres</strong> - Three</li>
+                  <li><strong>Cuatro</strong> - Four</li>
+                  <li><strong>Cinco</strong> - Five</li>
+                  <li><strong>Seis</strong> - Six</li>
+                  <li><strong>Siete</strong> - Seven</li>
+                  <li><strong>Ocho</strong> - Eight</li>
+                  <li><strong>Nueve</strong> - Nine</li>
+                  <li><strong>Diez</strong> - Ten</li>
+                </ul>
+                <p>Practice counting from 1 to 10 in Spanish.</p>`
+              },
+              {
+                title: 'Using Numbers',
+                content: `<h3>Using Numbers in Conversation</h3>
+                <p>Numbers are essential for many everyday conversations:</p>
+                <ul>
+                  <li>Telling time: <strong>Son las tres</strong> (It's three o'clock)</li>
+                  <li>Shopping: <strong>Quiero dos manzanas</strong> (I want two apples)</li>
+                  <li>Phone numbers: <strong>Mi número es...</strong> (My number is...)</li>
+                </ul>
+                <p>Try creating sentences using the numbers you've learned.</p>`
+              }
+            ]
+          },
+          created_at: new Date().toISOString()
+        },
+        {
+          id: uuidv4(),
+          title: 'Common Verbs',
+          description: 'Learn essential verbs and basic conjugation',
+          language: 'Spanish',
+          level: 'Beginner',
+          duration: 20,
+          type: 'grammar',
+          content: {
+            sections: [
+              {
+                title: 'Regular -AR Verbs',
+                content: `<h3>Common -AR Verbs</h3>
+                <ul>
+                  <li><strong>Hablar</strong> - To speak</li>
+                  <li><strong>Caminar</strong> - To walk</li>
+                  <li><strong>Trabajar</strong> - To work</li>
+                  <li><strong>Estudiar</strong> - To study</li>
+                </ul>
+                <h4>Present Tense Conjugation</h4>
+                <p>For the verb <strong>hablar</strong>:</p>
+                <ul>
+                  <li>yo <strong>hablo</strong> - I speak</li>
+                  <li>tú <strong>hablas</strong> - You speak</li>
+                  <li>él/ella <strong>habla</strong> - He/she speaks</li>
+                  <li>nosotros <strong>hablamos</strong> - We speak</li>
+                  <li>ustedes <strong>hablan</strong> - You all speak</li>
+                  <li>ellos/ellas <strong>hablan</strong> - They speak</li>
+                </ul>`
+              }
+            ]
+          },
+          created_at: new Date().toISOString()
+        }
+      ];
+
+      // Insert lessons into the database
+      for (const lesson of initialLessons) {
+        const { error } = await supabase
+          .from('lessons')
+          .insert([lesson]);
+        
+        if (error) {
+          throw new Error(handleSupabaseError(error));
+        }
+      }
+
+      // Return the created lessons
+      return initialLessons.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        language: lesson.language,
+        level: lesson.level,
+        duration: lesson.duration,
+        type: lesson.type,
+        content: lesson.content,
+        createdAt: lesson.created_at,
+      }));
+    } catch (error: any) {
+      console.error('Create initial lessons error:', error);
       throw error;
     }
   },
