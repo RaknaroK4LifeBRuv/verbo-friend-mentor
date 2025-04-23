@@ -1,24 +1,23 @@
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { v4 as uuidv4 } from "uuid";
+import { Json } from "@/types/database.types";
 
 // Log activity and reward XP
 export const logUserActivity = async (
   userId: string,
   activityType: string,
   xp: number = 10,
-  metadata: object = {}
+  metadata: Json = {}
 ) => {
   if (!userId) return;
-  await supabase.from("user_activity").insert([
-    {
-      id: uuidv4(),
-      user_id: userId,
-      activity_type: activityType,
-      xp_earned: xp,
-      metadata,
-    },
-  ]);
+  await supabase.from("user_activity").insert({
+    id: uuidv4(),
+    user_id: userId,
+    activity_type: activityType,
+    xp_earned: xp,
+    metadata,
+  });
 };
 
 // Unlock achievement for user
@@ -44,12 +43,10 @@ export const unlockAchievement = async (
     .maybeSingle();
   if (exists) return;
 
-  await supabase.from("user_achievements").insert([
-    {
-      user_id: userId,
-      achievement_id: achievement.id,
-    },
-  ]);
+  await supabase.from("user_achievements").insert({
+    user_id: userId,
+    achievement_id: achievement.id,
+  });
 };
 
 export const getUserProgress = async (userId: string) => {
